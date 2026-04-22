@@ -1,0 +1,7 @@
+=== 官方基准模型性能指标 ===
+Precision: 0.7133
+Recall: 0.6301
+mAP50: 0.6641
+mAP50-95: 0.4501
+-----------------------------------
+结果文件夹: D:\lzx\tongji\Graduation_Project\Code\LV_Pole_UAV_Det_Meas\LV_Pole_Project\exp_baseline_official_1024
