@@ -1,0 +1,7 @@
+=== 最终性能指标 (Best Model) ===
+Precision: 0.7234
+Recall: 0.5513
+mAP50: 0.6371
+mAP50-95: 0.3552
+-----------------------------------
+结果文件夹: D:\lzx\tongji\Graduation_Project\Code\LV_Pole_UAV_Det_Meas\LV_Pole_Project\exp_final_v3
