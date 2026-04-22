@@ -1,0 +1,7 @@
+=== 最终性能指标 (Best Model) ===
+Precision: 0.7992
+Recall: 0.6229
+mAP50: 0.7070
+mAP50-95: 0.3996
+-----------------------------------
+结果文件夹: D:\lzx\tongji\Graduation_Project\Code\LV_Pole_UAV_Det_Meas\LV_Pole_Project\exp_p2_surge_v4
