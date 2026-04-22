@@ -1,0 +1,24 @@
+# 核心深度学习框架
+torch>=1.13.0
+torchvision>=0.14.0
+
+# YOLOv8 基础库 ultralytics>=8.0.0
+
+# 图像处理与科学计算
+opencv-python>=4.6.0
+numpy>=1.22.0
+pandas>=1.5.0
+matplotlib>=3.6.0
+Pillow>=9.3.0
+
+# Web 系统开发 (前端+后端)
+streamlit>=1.15.0
+Flask>=2.2.0
+
+# 数据与标签处理
+lxml  # 用于处理 XML/LabelStudio 格式
+tqdm  # 进度条
+
+# 部署优化 
+# tensorrt 
+# onnx>=1.13.0

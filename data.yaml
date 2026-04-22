@@ -1,0 +1,12 @@
+# 1. 基础路径配置
+path: D:/lzx/tongji/Graduation_Project/Code/LV_Pole_UAV_Det_Meas/data/final_dataset
+train: train/images # 176张UAV正样本 + 100张地拍正样本 + 86张背景负样本
+val: val/images # 23张纯UAV正样本
+
+# 2. 类别定义
+nc: 1
+names:
+  0: low_voltage_pole
+
+# 3. 针对 2026 年版本的增强配置
+task: obb # 明确告知模型这是旋转框任务，有助于内部优化器选择 Loss 函数
