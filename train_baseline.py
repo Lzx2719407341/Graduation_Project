@@ -1,5 +1,5 @@
-# 基准测试代码 (train_baseline.py)
-# 运行官方原生 YOLOv8s-OBB 模型，并在结束后自动导出对比用的核心性能指标。
+# train_baseline.py
+# 运行官方原生YOLOv8s-OBB模型，并在结束后自动导出对比用的核心性能指标
 
 import sys
 import os
