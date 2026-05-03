@@ -1,10 +1,10 @@
-# 坐标注意力机制 (ca_ops.py)
-# 实现 Coordinate Attention (CA) 模块，沿水平和垂直方向提取长距离位置依赖特征。
+# models/architecture/ca_ops.py
+# Coordinate Attention模块实现，增强模型对空间位置信息的感知能力，适用于电线杆检测任务
 
 import torch
 import torch.nn as nn
 
-# Coordinate Attention 模块：通过对 X 和 Y 方向分别进行池化，捕捉长距离的位置信息。
+# Coordinate Attention模块，增强模型对空间位置信息的感知能力，适用于电线杆检测任务
 class CoordAtt(nn.Module):
     def __init__(self, inp, oup, reduction=32):
         super(CoordAtt, self).__init__()
@@ -19,7 +19,8 @@ class CoordAtt(nn.Module):
         
         self.conv_h = nn.Conv2d(mip, oup, kernel_size=1, stride=1, padding=0)
         self.conv_w = nn.Conv2d(mip, oup, kernel_size=1, stride=1, padding=0)
-        
+    
+    # 前向传播函数，输入特征图，输出增强后的特征图
     def forward(self, x):
         identity = x
         
