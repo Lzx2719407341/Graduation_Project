@@ -1,4 +1,6 @@
 # web/ui.py
+# Streamlit界面代码，提供图片上传、检测结果展示、量测交互和历史记录查询功能
+
 import streamlit as st
 import cv2
 import numpy as np
@@ -6,9 +8,8 @@ import sys
 import os
 import json
 
-# --- 路径修复：确保能找到项目根目录下的 core 模块 ---
-current_dir = os.path.dirname(os.path.abspath(__file__)) # web/
-root_dir = os.path.dirname(current_dir)                  # 项目根目录
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.dirname(current_dir)                  
 if root_dir not in sys.path:
     sys.path.append(root_dir)
 
@@ -19,14 +20,19 @@ from core.history_manager import HistoryManager
 # 页面全局配置
 st.set_page_config(page_title="无人机电线杆智能量测系统 v4", layout="wide")
 
-# 初始化后端组件（使用缓存避免重复加载模型）
+# 初始化后端组件
 @st.cache_resource
 def init_backend():
-    # 自动加载 v4 模型、几何量测器和 SQLite 历史管理器
+    # 自动加载v4模型、几何量测器和SQLite历史管理器
     return PoleDetector(), PoleMeasurer(), HistoryManager()
+    # 定义Baseline模型的权重路径
+    # baseline_path = os.path.join(root_dir, 'LV_Pole_Project', 'exp_baseline_official_1024', 'weights', 'best.pt')
+    # return PoleDetector(model_path=baseline_path), PoleMeasurer(), HistoryManager()
+
 
 detector, measurer, history = init_backend()
 
+# 初始化会话状态变量
 if "current_view" not in st.session_state:
     st.session_state.current_view = "gallery"
 if "selected_idx" not in st.session_state:
@@ -45,12 +51,9 @@ st.markdown("---")
 # 创建功能分页
 tab_main, tab_history = st.tabs(["🔍 实时检测与量测", "📜 历史巡检记录"])
 
-# --- Tab 1: 实时检测与交互量测 ---
-# --- Tab 1: 实时检测 ---
+# 1、实时检测
 with tab_main:
-    # 👆 修复位置 1：在进入逻辑前初始化，防止全局 NameError
     res_obj = None 
-    
     # 侧边栏配置保持不变
     st.sidebar.header("🛠️ 核心配置")
     conf_val = st.sidebar.slider("模型置信度阈值", 0.1, 1.0, 0.25)
@@ -67,7 +70,7 @@ with tab_main:
                 st.session_state.current_view = "gallery"
                 st.rerun()
 
-        # --- 视图 A：图片相册总览 ---
+        # 视图1：图片相册总览
         if st.session_state.current_view == "gallery":
             st.subheader(f"📂 已导入图片 ({len(uploaded_files)} 张)")
             cols = st.columns(4) 
@@ -82,7 +85,7 @@ with tab_main:
                         st.session_state.current_view = "detail"
                         st.rerun()
 
-        # --- 视图 B：单张图片详细界面 ---
+        # 视图2：单张图片详细界面
         elif st.session_state.current_view == "detail":
             idx = st.session_state.selected_idx
             uploaded_file = uploaded_files[idx]
@@ -98,10 +101,7 @@ with tab_main:
                     st.session_state.last_plot = plot_img
                     st.session_state.last_file = uploaded_file.name
             
-            # 👆 修复位置 2：在详情模式下，从 session_state 提取结果给 res_obj
             res_obj = st.session_state.last_results
-
-            # 👆 修复位置 3：【重点】以下所有 UI 展示代码必须全部缩进到这个 elif 分支内
             col_img, col_data = st.columns([1.8, 1])
             
             with col_img:
@@ -118,7 +118,6 @@ with tab_main:
             with col_data:
                 st.subheader("📊 目标明细与量测报告")
                 
-                # 现在 res_obj 已经在上方被定义了，不会报 NameError
                 if res_obj and len(res_obj.obb) > 0:
                     current_measurements = []
                     for i, obb in enumerate(res_obj.obb):
@@ -165,20 +164,20 @@ with tab_main:
                 else:
                     st.info("💡 未识别到电线杆目标")
 
-# --- Tab 2: 历史记录查询 ---
+# 2、历史记录查询
 with tab_history:
     st.subheader("📋 历史巡检任务列表")
     # 获取数据
     df_raw = history.get_all()
     
     if not df_raw.empty:
-        # 1. 关键：提取需要的列，并强制转为字符串类型
+        # 提取需要的列，并强制转为字符串类型
         df_display = df_raw[["id", "time", "filename", "pole_count"]].astype(str)
         
-        # 2. 渲染表格
+        # 渲染表格
         st.dataframe(
             df_display, 
-            width='stretch', # 替代旧版的 width='stretch'
+            width='stretch', 
             hide_index=True,
             column_config={
                 "id": st.column_config.TextColumn("ID", alignment="left"),
@@ -190,7 +189,7 @@ with tab_history:
         
         st.divider()
         
-        # --- 详细查询部分也同步修改 ---
+        # 查询
         search_id = st.number_input("输入记录 ID 查看详细测量报表", 
                                     min_value=int(df_raw['id'].min()), 
                                     max_value=int(df_raw['id'].max()))
@@ -201,7 +200,7 @@ with tab_history:
                 results_data = json.loads(target_record['results'].values[0])
                 st.markdown(f"**记录文件:** `{target_record['filename'].values[0]}` | **时间:** `{target_record['time'].values[0]}`")
                 
-                # 将结果转为 DataFrame 并强制转为字符串，确保详细表也是左对齐
+                # 将结果转为DataFrame并强制转为字符串，确保详细表也是左对齐
                 import pandas as pd
                 df_detail = pd.DataFrame(results_data).astype(str)
                 st.dataframe(df_detail, width='stretch', hide_index=True)
