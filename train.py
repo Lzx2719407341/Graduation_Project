@@ -1,14 +1,11 @@
-# 自定义模型训练脚本 (train.py)
-# 包含 HyperACE + CA 算子注入，并在训练结束后自动导出核心性能指标总结。
+# train.py
+# 运行自定义的YOLOv8s-HyperACE-CA-P2模型，进行分阶段训练，并在每个阶段结束后自动导出核心性能指标总结
 
 import sys
 import os
-import torch
 from ultralytics import YOLO
 import ultralytics.nn.tasks as tasks
-import traceback
 
-# 修复环境变量寻址
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
@@ -23,15 +20,15 @@ tasks.parse_model = custom_parse_model
 
 def main():
     data_yaml = 'data.yaml'
-    # 先跑50轮，观察训练曲线和性能指标，后续根据需要调整超参数
+    # 先跑50轮，观察训练曲线和性能指标
     # model = YOLO('models/yolov8s_hyperace_ca.yaml').load('yolov8s-obb.pt')
     
     # # 开启训练
     # results = model.train(
     #     data=data_yaml,
-    #     epochs=50,         # 增加轮次以消化新增的混合特征
-    #     imgsz=1024,         # 必须维持1024，否则地拍图的分辨率优势会丢失
-    #     batch=4,            # 1024分辨率下，建议从4或8开始，防止显存溢出
+    #     epochs=50,         
+    #     imgsz=1024,         
+    #     batch=4,            
     #     workers=4,
         
     #     # 核心策略：冻结与增强
@@ -52,32 +49,28 @@ def main():
     #     cache=True          # 开启缓存，加快读取速度并稳定训练
     # )
 
-    # 观察前50轮的训练曲线和性能指标后，解除冻结，降低学习率，继续微调。
-    # 建议加载你之前 35% mAP 的那个 best.pt 权重进行增量训练
-    # 重点：我们跳过表现不佳的 v2，直接继承表现最好的 v1 的“遗产”
-    # 这样你的 v3 就能在一个 35.8% 的高起点上开始消化那 700 张新图
+    # 加载之前35% mAP的那个best.pt权重进行增量训练
+    # 跳过表现不佳的v2，直接继承表现最好的v1
     # model_path = 'LV_Pole_Project/exp_mixed_domain_v1/weights/best.pt' 
     # model = YOLO(model_path)
 
     # results = model.train(
     #     # --- 基础配置 ---
     #     data=data_yaml,
-    #     epochs=200,          # 700张图，200轮确保收敛
-    #     imgsz=1024,          # 核心：必须1024
-    #     batch=4,             # 若显存允许(>16G)可设为8
+    #     epochs=200,          
+    #     imgsz=1024,          
+    #     batch=4,             
     #     workers=4,
     #     device=0,
     #     project='LV_Pole_Project',
-    #     name='exp_final_v3', # 你的终极实验版本
+    #     name='exp_final_v3', 
     #     exist_ok=True,
 
-    #     # --- 核心权重优化 (专门对付 Recall 漏检) ---
     #     box=10.0,            # 增加定位惩罚
     #     cls=2.0,             # 增加分类权重，大幅提升置信度分数
     #     dfl=2.0,             # 增加边界回归精度
         
-    #     # --- 训练节奏控制 ---
-    #     freeze=9,            # 维持冻结以保住 HyperACE 的预训练成果
+    #     freeze=9,            # 维持冻结以保住HyperACE的预训练成果
     #     optimizer='AdamW',   # 对注意力机制更友好的优化器
     #     lr0=0.002,           # 精细初始学习率
     #     cos_lr=True,         # 余弦退火
@@ -85,62 +78,56 @@ def main():
     #     close_mosaic=30,     # 最后30轮关闭增强进行角度微调
     #     patience=50,         # 自动早停
 
-    #     # --- 数据增强 ---
     #     mosaic=1.0,
     #     mixup=0.15,
     #     scale=0.6,           # 强制模型学习远小目标
     #     fliplr=0.5,
     #     flipud=0.5,          # 增加无人机视角的随机性
         
-    #     # --- 性能优化 ---
     #     cache=True,
     #     amp=True
     # )
 
-    # # 1. 配置文件指向你刚改好的 P2 版本 YAML
+    # # 配置文件yolov8s_hyperace_ca_p2版本YAML
     # model_yaml = 'models/yolov8s_hyperace_ca_p2.yaml' 
     
-    # # 2. 初始权重：加载 v3 的 best.pt
-    # # 它会自动匹配能用的层（Backbone），而新增加的 P2 检测头会进行随机初始化学习
+    # # 初始权重：加载v3的best.pt
     # model = YOLO(model_yaml).load('LV_Pole_Project/exp_final_v3/weights/best.pt') 
 
     # results = model.train(
-    #     data='data.yaml',      # 继续使用包含 700 张图的 v3 划分
-    #     epochs=150,           # P2 头比较细碎，建议给 150 轮让它学透
-    #     imgsz=1024,           # 必须 1024！P2 层的威力和 1024 是绝配
-    #     batch=2,              # [警告] P2 层非常吃显存，如果显存报错请设为 2
+    #     data='data.yaml',      
+    #     epochs=150,           
+    #     imgsz=1024,           
+    #     batch=2,              
         
-    #     # --- 针对 P2 头的特殊策略 ---
-    #     freeze=9,             # 建议冻结前 9 层，强迫模型把注意力放在新加的 P2 检测头上
-    #     lr0=0.002,            # 适中的学习率
-    #     box=12.0,             # [优化] 调高定位权重，P2 就是为了把框卡得更死、更准
-    #     cls=2.0,              # 维持高分类权重，冲刺 90% 置信度
+    #     freeze=9,             # 冻结前9层，强迫模型把注意力放在新加的P2检测头上
+    #     lr0=0.002,            
+    #     box=12.0,             
+    #     cls=2.0,              
         
     #     project='LV_Pole_Project',
-    #     name='exp_p2_surge_v4', # 我们的第四阶段：P2 冲刺版
+    #     name='exp_p2_surge_v4', 
         
-    #     # --- 增强与效率 ---
     #     mosaic=1.0,
-    #     close_mosaic=30,      # 最后 30 轮关闭增强，对测量任务的角度回归极度重要
+    #     close_mosaic=30,      # 最后30轮关闭增强
     #     cache=True,
-    #     amp=True,             # 必须开启，否则显存必爆
+    #     amp=True,             
     #     optimizer='AdamW',
     #     deterministic=False,
     #     workers=8
     # )
 
+    # 从v4的last.pt继续训练，直到性能稳定，自动导出核心指标总结
     last_weights = 'LV_Pole_Project/exp_p2_surge_v4/weights/last.pt'
     model = YOLO(last_weights)
 
     # 恢复训练
     results = model.train(
-        resume=True,         # 开启恢复模式，它会自动接在 120 轮往后跑
-        
-        # 为了防止再次 MemoryError，我们需要覆盖这两个参数
-        cache=False,         # 别再往内存里塞图了，从硬盘读，保命要紧
-        workers=2,           # 减少线程数，降低 spawn 进程的内存开销
-        
-        # 确保其他环境参数一致
+        resume=True,         # 开启恢复模式
+
+        cache=False,         
+        workers=2,           
+    
         imgsz=1024,
         batch=2
     )
