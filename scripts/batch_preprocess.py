@@ -1,18 +1,18 @@
-# 图像预处理脚本 (batch_preprocess.py)
-# 对无人机航拍影像进行批量对比度受限自适应直方图均衡化 (CLAHE) 处理，增强暗部与细长杆体细节。
+# scripts/batch_preprocess.py
+# 批处理预处理脚本，针对无人机影像进行去噪和增强，同时同步处理OBB标签，确保数据质量和标签一致性
 
 import cv2
 import os
 import shutil
-from pathlib import Path
 from tqdm import tqdm
 
+# 批处理函数，输入源图像和标签目录，输出处理后的图像和标签目录
 def batch_preprocess(src_img_dir, src_label_dir, dst_img_dir, dst_label_dir):
     # 创建目标文件夹
     os.makedirs(dst_img_dir, exist_ok=True)
     os.makedirs(dst_label_dir, exist_ok=True)
 
-    # 初始化 CLAHE (自适应直方图均衡化) 增强对比度
+    # 初始化CLAHE（自适应直方图均衡化）增强对比度
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
     # 获取所有图片文件
