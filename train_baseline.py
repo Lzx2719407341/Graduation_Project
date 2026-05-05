@@ -33,7 +33,7 @@ def main():
         optimizer='AdamW', 
         device=0 if torch.cuda.is_available() else 'cpu',
         project=project_name,
-        name='exp_baseline_official_1024', # 👈 改个名字，方便区分
+        name='exp_baseline_official_1024',
         exist_ok=True
     )
 
