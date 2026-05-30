@@ -1,24 +1,27 @@
-# 核心深度学习框架
-torch>=1.13.0
-torchvision>=0.14.0
+# 深度学习核心框架
+torch==2.7.1+cu118
+torchvision==0.22.1+cu118
+torchaudio==2.7.1+cu118
 
-# YOLOv8 基础库 ultralytics>=8.0.0
+# 目标检测与计算视觉核心库
+ultralytics==8.4.5
+ultralytics-thop==2.0.18
+opencv-python==4.12.0.88
+pillow==12.0.0
 
-# 图像处理与科学计算
-opencv-python>=4.6.0
-numpy>=1.22.0
-pandas>=1.5.0
-matplotlib>=3.6.0
-Pillow>=9.3.0
+# 可视化交互系统
+streamlit==1.56.0
+watchdog==6.0.0
 
-# Web 系统开发 (前端+后端)
-streamlit>=1.15.0
-Flask>=2.2.0
+# 数据处理
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.15.3
+scikit-learn==1.7.2
+matplotlib==3.10.8
+pyyaml==6.0.3
 
-# 数据与标签处理
-lxml  # 用于处理 XML/LabelStudio 格式
-tqdm  # 进度条
-
-# 部署优化 
-# tensorrt 
-# onnx>=1.13.0
+# 可解释性AI、消融实验增强工具
+grad-cam==1.5.5
+ttach==0.0.3
+tqdm==4.67.1
